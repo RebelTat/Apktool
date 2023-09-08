@@ -219,8 +219,7 @@ public class ResourcesDecoder {
         }
     }
 
-    private void generatePublicXml(ResPackage pkg, Directory out,
-                                   XmlSerializer serial) throws AndrolibException {
+    private void generatePublicXml(ResPackage pkg, Directory out, XmlSerializer serial) throws AndrolibException {
         try {
             OutputStream outStream = out.getFileOutput("values/public.xml");
             serial.setOutput(outStream, null);
@@ -228,11 +227,18 @@ public class ResourcesDecoder {
             serial.startTag(null, "resources");
 
             for (ResResSpec spec : pkg.listResSpecs()) {
-                serial.startTag(null, "public");
+                String resourceId = String.format("0x%08x", spec.getId().id);
+
+		serial.startTag(null, "public");
                 serial.attribute(null, "type", spec.getType().getName());
                 serial.attribute(null, "name", spec.getName());
-                serial.attribute(null, "id", String.format("0x%08x", spec.getId().id));
+                serial.attribute(null, "id", resourceId);
                 serial.endTag(null, "public");
+
+		if (mConfig.resolveResources) {
+                    String qualifiedResourceName = String.format("%s.%s.%s", mConfig.fileName, spec.getType().getName(), spec.getName());
+                    mConfig.resourceIds.put(Integer.decode(resourceId), qualifiedResourceName);
+                }
             }
 
             serial.endTag(null, "resources");
